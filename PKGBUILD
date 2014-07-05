@@ -8,7 +8,9 @@ url='https://github.com/kevr/sprunge'
 arch=('i686' 'x86_64' 'armv6h')
 depends=('python')
 source=('sprunge')
-sha256sums=('3e597f47a656ee7695dbad8f117a08cb3027aa67a503b2bbaccf4a77d555e1a7')
+sha256sums=(
+    'e36f331e35270978639555f485dc13f37298fe248f02f34dc0670665b44b2d48'
+)
 
 package()
 {
