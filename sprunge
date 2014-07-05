@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+import sys
+import urllib.parse
+import urllib.request
+from select import select
+
+## Voila hardcoded settings~
+url = "http://sprunge.us"
+timeout = 5 # Change this to any http request timeout you desire
+
+## Immediately timed out select poll
+def has_data(fd):
+    return select([fd], [], [], 0.0) == ([fd], [], [])
+
+## Sorry for the C-style functions, I prefer them
+def main():
+    if not has_data(sys.stdin):
+        print("sprunge: no data given via stdin")
+        return 1
+
+    d = { "sprunge": sys.stdin.read() }
+
+    encoded = urllib.parse.urlencode(d)
+    request = urllib.request.Request(url, encoded.encode("UTF-8"))
+    reply = urllib.request.urlopen(request, timeout=timeout)
+
+    if not reply:
+        print("sprunge: no response from '{}'".format(url))
+        return 2
+
+    response = reply.read().decode("UTF-8")
+    print(response.rstrip())
+
+    return 0
+
+# main execution
+if __name__ == "__main__":
+    e = main()
+    exit(e)
+
