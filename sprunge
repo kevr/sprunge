@@ -19,17 +19,23 @@ def main():
         print("sprunge: no data given via stdin")
         return 1
 
-    d = { "sprunge": sys.stdin.read() }
+    # Data field sprunge: for POST request to sprunge
+    post_data = { "sprunge": sys.stdin.read() }
+    post_data = urllib.parse.urlencode(post_data)
 
-    encoded = urllib.parse.urlencode(d)
-    request = urllib.request.Request(url, encoded.encode("UTF-8"))
+    # The actual request process
+    request = urllib.request.Request(url, post_data.encode("UTF-8"))
     reply = urllib.request.urlopen(request, timeout=timeout)
 
     if not reply:
         print("sprunge: no response from '{}'".format(url))
         return 2
 
+    # Read in the reply socket's data and close it cleanly
     response = reply.read().decode("UTF-8")
+    reply.close()
+
+    # End the program by printing out sprunge's response
     print(response.rstrip())
 
     return 0
