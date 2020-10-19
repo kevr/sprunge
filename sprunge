@@ -106,7 +106,7 @@ def main():
         if args.clipboard:
             proc = Popen([
                 "/bin/sh", "-c",
-                f'echo "{response}" | {args.clip_command}'
+                f'echo -n "{response}" | {args.clip_command}'
             ])
             proc.wait()
 
