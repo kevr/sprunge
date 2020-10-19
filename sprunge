@@ -25,17 +25,18 @@ def quit(code, msg):
 
 ## Sorry for the C-style functions, I prefer them
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--clipboard-command",
-            dest="clipboard_command",
+    help_description = "Upload text from stdin to http://sprunge.us."
+    parser = argparse.ArgumentParser(description=help_description)
+    parser.add_argument("--clip-command", "-cc",
+            metavar="clip_command",
             default="xclip -sel primary",
-            help="Command to use for clipboard pipe.")
+            help="clipboard pipe command (default: 'xclip -sel primary')")
     parser.add_argument("--clipboard", "-c",
-            dest="clipboard",
+            metavar="clipboard",
             action="store_const",
             const=True,
             default=False,
-            help="Copy URL to the primary clipboard.")
+            help="pipe stdout to --clip-command")
     args = parser.parse_args()
 
     if not has_data(sys.stdin):
@@ -68,7 +69,7 @@ def main():
     if args.clipboard:
         proc = Popen([
             "/bin/sh", "-c",
-            f'echo "{response}" | {args.clipboard_command}'
+            f'echo "{response}" | {args.clip_command}'
         ])
         proc.wait()
 
