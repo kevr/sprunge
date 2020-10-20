@@ -115,5 +115,5 @@ def main():
 # main execution
 if __name__ == "__main__":
     e = main()
-    exit(e)
+    sys.exit(e)
 
