@@ -5,17 +5,16 @@
 # Description: A tool which uploads data from stdin to sprunge.us
 # Copyright (C) 2014 Kevin Morris
 import sys
+import os
 import urllib.parse
 import urllib.request
-from select import select
 import argparse
+from select import select
 from subprocess import Popen
 
-## Voila hardcoded settings~
 url = "http://sprunge.us"
-timeout = 5 # Change this to any http request timeout you desire
+timeout = int(os.environ.get("SPRUNGE_SERVER_TIMEOUT", 5))
 
-## Immediately timed out select poll
 def has_data(fd):
     return select([fd], [], [], 0.0) == ([fd], [], [])
 
@@ -60,8 +59,8 @@ def main():
     parser = argparse.ArgumentParser(description=help_description)
     parser.add_argument("--clip-command", "-cc",
             metavar="clip_command",
-            default="xclip -sel primary",
-            help="clipboard pipe command (default: 'xclip -sel primary')")
+            default=os.environ.get("SPRUNGE_CLIPPER", "xclip -sel primary"),
+            help="clipboard command (default: $SPRUNGE_CLIPPER, 'xclip -sel primary')")
     parser.add_argument("--clipboard", "-c",
             metavar="clipboard",
             action="store_const",
