@@ -23,9 +23,16 @@ The clipboard command can be customized via `--clip-command|-cc`.
 
 Already uploaded pastes can be fetched by passing the paste ID to sprunge as a positional argument.
 
-    $ cat file.txt | sprunge
+    $ echo 'test' | sprunge
     http://sprunge.us/aBCdeFG
     $ sprunge aBCdeFG
-    ...
+    test
     $ sprunge http://sprunge.us/aBCdeFG
-    ...
+    test
+
+## Configuration
+
+A few environment variables are utilized for defaults.
+
+* `SPRUNGE_SERVER_TIMEOUT`: The sprunge request timeout (default: 5)
+* `SPRUNGE_CLIPPER`: Default --clip-command
