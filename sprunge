@@ -28,7 +28,7 @@ def get_paste(id):
     reply = urllib.request.urlopen(request, timeout=timeout)
 
     if not reply:
-        return 3, "error: no response from '{}'".format(paste_url)
+        return 3, f"error: no response from '{paste_url}'"
 
     response = reply.read().decode()
     reply.close()
@@ -43,7 +43,7 @@ def post_paste(text):
     reply = urllib.request.urlopen(request, timeout=timeout)
 
     if not reply:
-        return 3, "error: no response from '{}'".format(url)
+        return 3, f"error: no response from '{url}'"
 
     # Read in the reply socket's data and close it cleanly
     response = reply.read().decode()
