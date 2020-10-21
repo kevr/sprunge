@@ -23,7 +23,7 @@ def quit(code, msg):
     return code
 
 def get_paste(id):
-    paste_url = f"http://sprunge.us/{id}"
+    paste_url = f"{url}/{id}"
     request = urllib.request.Request(paste_url)
     reply = urllib.request.urlopen(request, timeout=timeout)
 
@@ -53,7 +53,7 @@ def post_paste(text):
 
 ## Sorry for the C-style functions, I prefer them
 def main():
-    help_description = "Upload text from stdin to http://sprunge.us. If [id] "
+    help_description = f"Upload text from stdin to {url}. If [id] "
     help_description += "is provided, the corresponding paste is fetched and "
     help_description += "displayed."
     parser = argparse.ArgumentParser(description=help_description)
@@ -74,9 +74,9 @@ def main():
 
     # If [id] was provided by the user.
     if args.id is not None:
-        if args.id[:4] == "http" and args.id[:18] != "http://sprunge.us/":
-            return quit(1, "error: invalid id provided; "
-                    + "URLs must begin with 'http://sprunge.us/'")
+        if args.id[:4] == "http" and args.id[:len(url)] != url:
+            return quit(1,
+                f"error: invalid id provided; URLs must begin with '{url}'")
 
         paste_id = args.id.split("/")[-1]
         if not paste_id:
