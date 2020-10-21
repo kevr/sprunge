@@ -10,7 +10,7 @@ A script for fetching or posting text pastes on http://sprunge.us.
     usage: sprunge [-h] [--clip-command clip_command] [--clipboard] [id]
 
     Upload text from stdin to http://sprunge.us. If [id] is provided,
-    the corresponding paste is fetched and displayed.
+    the corresponding paste is fetched and displayed instead.
 
     positional arguments:
       id                    when provided, fetches and displays a sprunge paste
