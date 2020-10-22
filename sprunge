@@ -24,17 +24,38 @@ def quit(code, msg):
 def get_paste(id):
     paste_url = f"{url}/{id}"
 
-    response = requests.get(paste_url, timeout=timeout)
-    if response.status_code != 200:
+    try:
+        response = requests.get(paste_url, timeout=timeout)
+    except requests.exceptions.ReadTimeout as exc:
+        return 1, "error: http request timed out"
+    except requests.exceptions.ConnectTimeout as exc:
+        return 1, "error: http connection timed out"
+
+    if response.status_code != requests.codes.ok:
         return 1, f"error: invalid http status code {response.status_code}"
 
-    return 0, response.content.decode().rstrip()
+    content = response.content.decode().rstrip()
+
+    # sprunge.us specific syntax for when a user attempts to
+    # get an invalid paste id. Test it directly here; reduce
+    # the amount of false positives as much as possible by
+    # checking the content against the given paste id.
+    if content == f"{id} not found.":
+        return 1, f"error: paste with id '{id}' could not be found"
+
+    return 0, content
 
 def post_paste(text):
     post_data = { "sprunge": text }
 
-    response = requests.post(url, data=post_data, timeout=timeout)
-    if response.status_code != 200:
+    try:
+        response = requests.post(url, data=post_data, timeout=timeout)
+    except requests.exceptions.ReadTimeout as exc:
+        return 1, "error: http request timed out"
+    except requests.exceptions.ConnectTimeout as exc:
+        return 1, "error: http connection timed out"
+
+    if response.status_code != requests.codes.ok:
         return 1, f"error: invalid http status code {response.status_code}"
 
     return 0, response.content.decode().rstrip()
@@ -70,11 +91,14 @@ def main():
 
     # If [id] was provided by the user.
     if args.id is not None:
-        if args.id[:4] == "http" and args.id[:len(url)] != url:
-            return quit(1,
-                f"error: invalid id provided; URLs must begin with '{url}'")
+        http = False
 
-        paste_id = args.id.split("/")[-1]
+        if args.id[:4] == "http":
+            if args.id[:len(url)] != url:
+                return quit(1, f"error: URLs must begin with '{url}'")
+            http = True
+
+        paste_id = args.id.split("/")[-1] if http else args.id
         if not paste_id:
             return quit(1, "error: no id provided")
 
