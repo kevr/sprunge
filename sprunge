@@ -6,9 +6,8 @@
 # Copyright (C) 2014 Kevin Morris
 import sys
 import os
-import urllib.parse
-import urllib.request
 import argparse
+import requests
 from select import select
 from subprocess import Popen
 
@@ -24,32 +23,21 @@ def quit(code, msg):
 
 def get_paste(id):
     paste_url = f"{url}/{id}"
-    request = urllib.request.Request(paste_url)
-    reply = urllib.request.urlopen(request, timeout=timeout)
 
-    if not reply:
-        return 3, f"error: no response from '{paste_url}'"
+    response = requests.get(paste_url, timeout=timeout)
+    if response.status_code != 200:
+        return 1, f"error: invalid http status code {response.status_code}"
 
-    response = reply.read().decode()
-    reply.close()
-
-    return 0, response.rstrip()
+    return 0, response.content.decode().rstrip()
 
 def post_paste(text):
-    post_data = urllib.parse.urlencode({ "sprunge": text })
+    post_data = { "sprunge": text }
 
-    # The actual request process
-    request = urllib.request.Request(url, post_data.encode())
-    reply = urllib.request.urlopen(request, timeout=timeout)
+    response = requests.post(url, data=post_data, timeout=timeout)
+    if response.status_code != 200:
+        return 1, f"error: invalid http status code {response.status_code}"
 
-    if not reply:
-        return 3, f"error: no response from '{url}'"
-
-    # Read in the reply socket's data and close it cleanly
-    response = reply.read().decode()
-    reply.close()
-
-    return 0, response.rstrip()
+    return 0, response.content.decode().rstrip()
 
 ## Sorry for the C-style functions, I prefer them
 def main():
@@ -91,8 +79,9 @@ def main():
             return quit(1, "error: no id provided")
 
         return_code, response = get_paste(paste_id)
-        if return_code != 0:
+        if return_code:
             return quit(return_code, response)
+
         print(response)
     else:
         try:
@@ -104,8 +93,9 @@ def main():
             return quit(1, "error: no data given via stdin")
 
         return_code, response = post_paste(stdin)
-        if return_code != 0:
+        if return_code:
             return quit(return_code, response)
+
         print(response)
 
         # If --clipboard was given, additionally use --clipboard-command
