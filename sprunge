@@ -60,7 +60,15 @@ def post_paste(text):
 
     return 0, response.content.decode().rstrip()
 
-## Sorry for the C-style functions, I prefer them
+
+def get_default_clipper():
+    if "WAYLAND_DISPLAY" in os.environ:
+        return "wl-copy -p"
+    elif "DISPLAY" in os.environ:
+        return "xclip -sel primary"
+    return "echo 'error: unable to find Wayland or Xorg'"
+
+
 def main():
     help_description = f"Upload text from stdin to {url}. If [id] "
     help_description += "is provided,\nthe corresponding paste is fetched "
@@ -70,23 +78,19 @@ def main():
   SPRUNGE_SERVER_TIMEOUT (default: 5)
 """
 
+    default_clipper = os.environ.get("SPRUNGE_CLIPPER", get_default_clipper())
     parser = argparse.ArgumentParser(
-            description=help_description,
-            epilog=footer,
-            formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--clip-command", "-cc",
-            metavar="clip_command",
-            default=os.environ.get("SPRUNGE_CLIPPER", "xclip -sel primary"),
-            help="clipboard command (default: SPRUNGE_CLIPPER)")
-    parser.add_argument("--clipboard", "-c",
-            metavar="clipboard",
-            action="store_const",
-            const=True,
-            default=False,
-            help="pipe stdout to --clip-command")
-    parser.add_argument("id",
-            nargs="?",
-            help="when provided, fetches and displays a sprunge paste")
+        description=help_description,
+        epilog=footer,
+        formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--clip-command", "-cc", metavar="clip_command",
+                        default=default_clipper,
+                        help="clipboard command (default: SPRUNGE_CLIPPER)")
+    parser.add_argument("--clipboard", "-c", metavar="clipboard",
+                        action="store_const", const=True, default=False,
+                        help="pipe stdout to --clip-command")
+    parser.add_argument("id", nargs="?",
+                        help="fetches and displays a sprunge paste")
     args = parser.parse_args()
 
     # If [id] was provided by the user.
