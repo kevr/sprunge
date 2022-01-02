@@ -4,31 +4,36 @@
 # Author: kevr <kevr@0cost.org>
 # Description: A tool which uploads data from stdin to sprunge.us
 # Copyright (C) 2014 Kevin Morris
-import sys
-import os
 import argparse
-import requests
+import os
+import sys
 from select import select
 from subprocess import Popen
+from typing import Tuple
+
+import requests
 
 url = "http://sprunge.us"
 timeout = int(os.environ.get("SPRUNGE_SERVER_TIMEOUT", 5))
 
-def has_data(fd):
+
+def has_data(fd: int) -> bool:
     return select([fd], [], [], 0.0) == ([fd], [], [])
 
-def quit(code, msg):
+
+def quit(code: int, msg: str) -> int:
     print(msg)
     return code
 
-def get_paste(id):
+
+def get_paste(id: int) -> Tuple[int, str]:
     paste_url = f"{url}/{id}"
 
     try:
         response = requests.get(paste_url, timeout=timeout)
-    except requests.exceptions.ReadTimeout as exc:
+    except requests.exceptions.ReadTimeout:
         return 1, "error: http request timed out"
-    except requests.exceptions.ConnectTimeout as exc:
+    except requests.exceptions.ConnectTimeout:
         return 1, "error: http connection timed out"
 
     if response.status_code != requests.codes.ok:
@@ -45,14 +50,15 @@ def get_paste(id):
 
     return 0, content
 
-def post_paste(text):
-    post_data = { "sprunge": text }
+
+def post_paste(text: str) -> Tuple[int, str]:
+    post_data = {"sprunge": text}
 
     try:
         response = requests.post(url, data=post_data, timeout=timeout)
-    except requests.exceptions.ReadTimeout as exc:
+    except requests.exceptions.ReadTimeout:
         return 1, "error: http request timed out"
-    except requests.exceptions.ConnectTimeout as exc:
+    except requests.exceptions.ConnectTimeout:
         return 1, "error: http connection timed out"
 
     if response.status_code != requests.codes.ok:
@@ -61,7 +67,7 @@ def post_paste(text):
     return 0, response.content.decode().rstrip()
 
 
-def get_default_clipper():
+def get_default_clipper() -> str:
     if "WAYLAND_DISPLAY" in os.environ:
         return "wl-copy -p"
     elif "DISPLAY" in os.environ:
@@ -69,11 +75,11 @@ def get_default_clipper():
     return "echo 'error: unable to find Wayland or Xorg'"
 
 
-def main():
+def main() -> int:
     help_description = f"Upload text from stdin to {url}. If [id] "
     help_description += "is provided,\nthe corresponding paste is fetched "
     help_description += "and displayed instead."
-    footer="""environment variables:
+    footer = """environment variables:
   SPRUNGE_CLIPPER (default: 'xclip -sel primary')
   SPRUNGE_SERVER_TIMEOUT (default: 5)
 """
@@ -129,16 +135,14 @@ def main():
         # If --clipboard was given, additionally use --clipboard-command
         # to save the resulting URL to the clipboard.
         if args.clipboard:
-            proc = Popen([
-                "/bin/sh", "-c",
-                f'echo -n "{response}" | {args.clip_command}'
-            ])
+            cmdline = f'echo -n "{response}" | {args.clip_command}'
+            proc = Popen(["/bin/sh", "-c", cmdline])
             proc.wait()
 
     return 0
+
 
 # main execution
 if __name__ == "__main__":
     e = main()
     sys.exit(e)
-
